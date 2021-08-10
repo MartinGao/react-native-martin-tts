@@ -37,6 +37,7 @@ public class RNMartinTtsModule extends ReactContextBaseJavaModule implements OnI
 
   @ReactMethod
   public void initTTS(final Promise promise) {
+    Log.i(TAG, "initTTS: 开始初始化TTS引擎");
     mSpeech = new TextToSpeech(getReactApplicationContext(), this, "com.iflytek.speechcloud");
   }
 
@@ -51,15 +52,16 @@ public class RNMartinTtsModule extends ReactContextBaseJavaModule implements OnI
     }
   }
   public void onUtteranceCompleted(String utteranceId) {
-    Log.i(TAG, "onUtteranceCompleted: 结束");
+    Log.i(TAG, "onUtteranceCompleted: 结束" + " " + utteranceId);
     if (this.onUtteranceCompletedPromise != null) {
-      Log.i(TAG, "onUtteranceCompleted: 并执行JS回调 Promise");
+      Log.i(TAG, "onUtteranceCompleted: 并执行JS回调 Promise" + " " + utteranceId);
       this.onUtteranceCompletedPromise.resolve(utteranceId);
     }
   }
 
   @ReactMethod
-  public void speak(final String payload, final String volume, Promise promise) {
+  public void speak(final String payload, final String volume, String taskId, Promise promise) {
+    Log.i(TAG, "speak: 开始说话" + " " + taskId + " " + payload);
     this.onUtteranceCompletedPromise = promise;
     // Log.i(TAG, "TTS getDefaultEngine() " + mSpeech.getDefaultEngine());
 
@@ -80,10 +82,16 @@ public class RNMartinTtsModule extends ReactContextBaseJavaModule implements OnI
 
     HashMap<String, String> myHashAlarm = new HashMap<String, String>();
     myHashAlarm.put(TextToSpeech.Engine.KEY_PARAM_STREAM, String.valueOf(AudioManager.STREAM_ALARM));
-    myHashAlarm.put(TextToSpeech.Engine.KEY_PARAM_UTTERANCE_ID, "SOME MESSAGE");
+    myHashAlarm.put(TextToSpeech.Engine.KEY_PARAM_UTTERANCE_ID, taskId);
     myHashAlarm.put(TextToSpeech.Engine.KEY_PARAM_VOLUME, volume);
     mSpeech.speak(payload, TextToSpeech.QUEUE_FLUSH, myHashAlarm);
 
-    Log.i(TAG, "TTS开始讲话");
+    Log.i(TAG, "speak: 结束说话" + " " + taskId + " " + payload);
+  }
+
+  @ReactMethod
+  public void stop(Promise promise) {
+    Log.i(TAG, "STOP: 结束这一切");
+    mSpeech.stop();
   }
 }
